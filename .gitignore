@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+*.pth
+checkpoints/
+.ipynb_checkpoints/
+outputs/training_history.png
