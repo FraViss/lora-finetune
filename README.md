@@ -9,13 +9,13 @@ This project fine-tunes **GPT-2 small** (117M parameters) on the **Tiny Shakespe
 
 ## What is LoRA?
 
-LoRA keeps the pretrained base model frozen and learns a low-rank update to selected weight matrices. Instead of fine-tuning the full weight matrix \(W\), the adaptation is decomposed as:
+LoRA keeps the pretrained base model frozen and learns a low-rank update to selected weight matrices. Instead of fine-tuning the full weight matrix $W$, the adaptation is decomposed as:
 
-\[
+$$
 \Delta W = B \cdot A
-\]
+$$
 
-where \(A \in \mathbb{R}^{r \times d_\text{in}}\) and \(B \in \mathbb{R}^{d_\text{out} \times r}\) with rank \(r \ll \min(d_\text{in}, d_\text{out})\). Only **A** and **B** are trained; at inference time the update can be merged back into \(W\).
+where $A \in \mathbb{R}^{r \times d_\text{in}}$ and $B \in \mathbb{R}^{d_\text{out} \times r}$ with rank $r \ll \min(d_\text{in}, d_\text{out})$. Only **A** and **B** are trained; at inference time the update can be merged back into $W$.
 
 ## Project structure
 
