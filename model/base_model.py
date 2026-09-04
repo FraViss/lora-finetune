@@ -33,7 +33,12 @@ class LoRAGPT2:
             alpha: LoRA scaling hyperparameter passed to each :class:`LoRALayer`.
         """
         self.model = GPT2LMHeadModel.from_pretrained("gpt2")
-        self.model.config.loss_type = "ForCausalLMLoss"
+        # GPT2LMHeadModel's class name doesn't match any transformers
+        # LOSS_MAPPING key (unlike e.g. LlamaForCausalLM), so the base
+        # library leaves self.loss_type as None and warns on every loss
+        # computation. It resolves to the same ForCausalLMLoss either way;
+        # this just makes the choice explicit and silences the warning.
+        self.model.loss_type = "ForCausalLM"
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
