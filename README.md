@@ -51,6 +51,8 @@ uv venv --python 3.12
 uv pip install -r requirements.txt
 ```
 
+The first run downloads GPT-2 from the Hugging Face Hub and prints `Warning: You are sending unauthenticated requests to the HF Hub`. This is expected and harmless—set the `HF_TOKEN` environment variable to a Hugging Face access token to raise the rate limit and speed up the download, but it isn't required.
+
 ## Usage
 
 Train LoRA adapters on Tiny Shakespeare:

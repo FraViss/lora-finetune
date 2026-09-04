@@ -33,6 +33,7 @@ class LoRAGPT2:
             alpha: LoRA scaling hyperparameter passed to each :class:`LoRALayer`.
         """
         self.model = GPT2LMHeadModel.from_pretrained("gpt2")
+        self.model.config.loss_type = "ForCausalLMLoss"
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
         self.tokenizer.pad_token = self.tokenizer.eos_token
 

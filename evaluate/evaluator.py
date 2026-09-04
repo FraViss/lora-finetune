@@ -13,6 +13,35 @@ from model.base_model import LoRAGPT2
 from train.config import TrainingConfig
 
 
+def compute_val_metrics(
+    lora_gpt2: LoRAGPT2,
+    data_loader: DataLoader,
+    device: str,
+) -> tuple[float, float]:
+    """Compute mean loss and perplexity for a model over a data loader.
+
+    Args:
+        lora_gpt2: Model wrapper to evaluate.
+        data_loader: Batches of ``input_ids``/``labels`` to evaluate on.
+        device: Device to move batches to before the forward pass.
+
+    Returns:
+        A tuple of ``(mean_loss, perplexity)``.
+    """
+    lora_gpt2.model.eval()
+    losses: list[float] = []
+
+    with torch.no_grad():
+        for batch in data_loader:
+            input_ids = batch["input_ids"].to(device)
+            labels = batch["labels"].to(device)
+            outputs = lora_gpt2.forward(input_ids=input_ids, labels=labels)
+            losses.append(outputs.loss.item())
+
+    mean_loss = sum(losses) / len(losses)
+    return mean_loss, math.exp(mean_loss)
+
+
 class Evaluator:
     """Compare perplexity and text generation between base and fine-tuned GPT-2."""
 
@@ -57,18 +86,8 @@ class Evaluator:
         Returns:
             Perplexity computed as ``exp(mean_cross_entropy_loss)``.
         """
-        lora_gpt2.model.eval()
-        losses: list[float] = []
-
-        with torch.no_grad():
-            for batch in self.val_loader:
-                input_ids = batch["input_ids"].to(self.device)
-                labels = batch["labels"].to(self.device)
-                outputs = lora_gpt2.forward(input_ids=input_ids, labels=labels)
-                losses.append(outputs.loss.item())
-
-        mean_loss = sum(losses) / len(losses)
-        return math.exp(mean_loss)
+        _, perplexity = compute_val_metrics(lora_gpt2, self.val_loader, self.device)
+        return perplexity
 
     def compare_perplexity(self) -> dict[str, float]:
         """Compare validation perplexity for base and fine-tuned models.
@@ -122,7 +141,7 @@ if __name__ == "__main__":
     config = TrainingConfig()
     evaluator = Evaluator(
         config,
-        checkpoint_path="checkpoints/checkpoint_epoch_3.pt",
+        checkpoint_path=f"{config.checkpoint_dir}/checkpoint_epoch_{config.num_epochs}.pt",
     )
     evaluator.compare_perplexity()
     evaluator.compare_generation(

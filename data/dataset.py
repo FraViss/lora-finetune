@@ -49,7 +49,11 @@ class ShakespeareDataset(Dataset):
         else:
             text = text[split_index:]
 
-        self.tokens = torch.tensor(tokenizer.encode(text), dtype=torch.long)
+        # verbose=False: this dataset chunks tokens into block_size pieces
+        # below, so the tokenizer's "sequence longer than model max length"
+        # warning is a false positive—the full sequence is never fed to the
+        # model at once.
+        self.tokens = torch.tensor(tokenizer.encode(text, verbose=False), dtype=torch.long)
 
     def __len__(self) -> int:
         """Return the number of non-overlapping blocks in the tokenized split."""

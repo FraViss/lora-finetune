@@ -22,7 +22,10 @@ EVALUATION_PROMPTS = [
     "What light through yonder window",
 ]
 
-DEFAULT_CHECKPOINT = "checkpoints/checkpoint_epoch_3.pt"
+
+def _default_checkpoint(config: TrainingConfig) -> str:
+    """Path to the checkpoint saved after the final configured epoch."""
+    return f"{config.checkpoint_dir}/checkpoint_epoch_{config.num_epochs}.pt"
 
 
 def run_train() -> None:
@@ -36,7 +39,7 @@ def run_train() -> None:
 def run_evaluate() -> None:
     """Compare base and fine-tuned models on perplexity and generation."""
     config = TrainingConfig()
-    evaluator = Evaluator(config, checkpoint_path=DEFAULT_CHECKPOINT)
+    evaluator = Evaluator(config, checkpoint_path=_default_checkpoint(config))
     evaluator.compare_perplexity()
     evaluator.compare_generation(prompts=EVALUATION_PROMPTS)
 

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import math
-import typing
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -13,6 +11,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from data.dataset import ShakespeareDataset
+from evaluate.evaluator import compute_val_metrics
 from model.base_model import LoRAGPT2
 from train.config import TrainingConfig
 
@@ -90,17 +89,7 @@ class Trainer:
         Returns:
             A tuple of ``(mean_val_loss, val_perplexity)``.
         """
-        self.lora_model.model.eval()
-        losses: list[float] = []
-
-        with torch.no_grad():
-            for batch in self.val_loader:
-                loss = self._compute_loss(batch)
-                losses.append(loss.item())
-
-        val_loss = sum(losses) / len(losses)
-        val_perplexity = math.exp(val_loss)
-        return val_loss, val_perplexity
+        return compute_val_metrics(self.lora_model, self.val_loader, self.device)
 
     def _save_checkpoint(self, epoch: int) -> None:
         """Save the model state dict for the given epoch.
@@ -142,6 +131,7 @@ class Trainer:
         for epoch in range(start_epoch, self.config.num_epochs + 1):
             self.lora_model.model.train()
             train_losses: list[float] = []
+            validated_this_epoch = False
 
             progress = tqdm(
                 self.train_loader,
@@ -163,6 +153,7 @@ class Trainer:
                     val_loss, val_perplexity = self._validate()
                     latest_val_loss = val_loss
                     latest_val_perplexity = val_perplexity
+                    validated_this_epoch = True
 
                     self.history["train_loss"].append(mean_train_loss)
                     self.history["val_loss"].append(val_loss)
@@ -170,7 +161,8 @@ class Trainer:
 
                     self.lora_model.model.train()
 
-            latest_val_loss, latest_val_perplexity = self._validate()
+            if not validated_this_epoch:
+                latest_val_loss, latest_val_perplexity = self._validate()
             mean_train_loss = sum(train_losses) / len(train_losses)
 
             if epoch % self.config.save_every_n_epochs == 0:
