@@ -93,11 +93,11 @@ class LoRAGPT2:
         Returns:
             The decoded generated text, including the original prompt.
         """
-        inputs = self.tokenizer(prompt, return_tensors="pt")
-        input_ids = inputs["input_ids"].to(self.model.device)
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
 
         output_ids = self.model.generate(
-            input_ids,
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
             max_new_tokens=max_new_tokens,
             do_sample=True,
             temperature=0.8,

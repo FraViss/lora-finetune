@@ -4,4 +4,3 @@ __pycache__/
 *.pth
 checkpoints/
 .ipynb_checkpoints/
-outputs/training_history.png
